@@ -1,0 +1,35 @@
+
+#define CREATE_INFO(n) Sort_info* info##n
+Return_code sorts_one_test (size_t size, Sort_info* info) {
+
+    Array* array = array_generate (size);
+
+
+    Sort_info* info5    = sort_info_dup (info, 5);
+    Sort_info* info10   = sort_info_dup (info, 10);
+    Sort_info* info25   = sort_info_dup (info, 25);
+    Sort_info* info50   = sort_info_dup (info, 50);
+    Sort_info* info100  = sort_info_dup (info, 100);
+    Sort_info* info200  = sort_info_dup (info, 200);
+    Sort_info* info300  = sort_info_dup (info, 300);
+    Sort_info* info400  = sort_info_dup (info, 400);
+    Sort_info* info500  = sort_info_dup (info, 500);
+    Sort_info* info1000 = sort_info_dup (info, 1000);
+
+    write ("heap",     size, sort_avg_time (heap_sort, array, info));
+    write ("heap5",    size, sort_avg_time (heap_sort, array, info5));
+    write ("heap10",   size, sort_avg_time (heap_sort, array, info));
+    write ("heap25",   size, sort_avg_time (heap_sort, array, info));
+    write ("heap100",  size, sort_avg_time (heap_sort, array, info100));
+    write ("heap200",  size, sort_avg_time (heap_sort, array, info200));
+    write ("heap300",  size, sort_avg_time (heap_sort, array, info300));
+    write ("heap400",  size, sort_avg_time (heap_sort, array, info400));
+    write ("heap500",  size, sort_avg_time (heap_sort, array, info500));
+    write ("heap1000", size, sort_avg_time (heap_sort, array, info1000));
+
+
+    array_dtor (array);
+
+
+    return SUCCESS;
+}

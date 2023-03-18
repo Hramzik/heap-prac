@@ -1,0 +1,13 @@
+
+
+set terminal svg enhanced mousing size 1024,768
+set output "work/results.svg"
+
+set datafile separator ','
+set grid xtics ytics
+
+set xlabel 'array lenth'
+set ylabel 'time, ms'
+set title "test results"
+
+plot "work/quick_mdl.txt" using 1:2 with lines title "quick.middle sort", "work/quick_rnd.txt" using 1:2 with lines title "quick.random sort", "work/quick_mo3.txt" using 1:2 with lines title "quick.medianofthree sort", "work/merge.txt" using 1:2 with lines title "merge sort", "work/lsd.txt" using 1:2 with lines title "lsd sort", "work/msd.txt" using 1:2 with lines title "msd sort"
