@@ -24,16 +24,19 @@ Return_code hheap_build (sHeap* heap, size_t n) {
     heap->minimums [n] = (hHeap*) calloc (1, HHEAP_SIZE);
 
 
-    heap->minimums [n]->buffer   = (Node*) calloc (heap->k, NODE_SIZE);
+    heap->minimums [n]->buffer   = (hNode*) calloc (heap->k, HNODE_SIZE);
     heap->minimums [n]->capacity = heap->k;
     heap->minimums [n]->size     = 0;
 
 
     size_t first_son = heap->k * n + 1; //first son
     size_t cur_son = first_son;
+
     while (IN_HEAP (cur_son) && (cur_son < first_son + heap->k)) {
 
-        heap_push (heap->minimums [n], { .value = heap->buffer [cur_son], .key = cur_son });
+        hNode cur_node = { .value = SHEAP (cur_son), .key = cur_son };
+        heap_push (heap->minimums [n], cur_node, heap->buffer);
+
         cur_son += 1;
     }
 
@@ -42,7 +45,7 @@ Return_code hheap_build (sHeap* heap, size_t n) {
 }
 
 
-Return_code sift_down (hHeap* heap, size_t n) {
+Return_code sift_down (hHeap* heap, size_t n, sNode* sbuffer) { // sbuffer - массив из большой sкучи
 
     if (!heap)         { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
     if (!heap->buffer) { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
@@ -59,7 +62,16 @@ Return_code sift_down (hHeap* heap, size_t n) {
         if (HEAP (n).value <= HEAP (min_son).value) { break; }
 
 
-        swap_node (&HEAP (n), &HEAP (min_son));
+        if (sbuffer) {
+
+            sbuffer [HHEAP (n)]      .child_index = min_son;
+            sbuffer [HHEAP (min_son)].child_index = n;
+        }
+
+
+        swap_hnode (&HEAP (n), &HEAP (min_son));
+
+
         n = min_son;
     }
 
@@ -68,17 +80,24 @@ Return_code sift_down (hHeap* heap, size_t n) {
 }
 
 
-Return_code sift_up (hHeap* heap, size_t i) {
+Return_code sift_up (hHeap* heap, size_t n, sNode* sbuffer) {
 
     if (!heap)         { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
     if (!heap->buffer) { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
 
 
 
-    while (i && HEAP (i).value < HEAP (PARENT (i)).value) {
+    while (n && HEAP (n).value < HEAP (PARENT (n)).value) {
 
-        swap_node (&HEAP (i), &HEAP (PARENT (i)));
-        i = PARENT (i);
+        if (sbuffer) {
+
+            sbuffer [HHEAP (n)]         .child_index = PARENT (n);
+            sbuffer [HHEAP (PARENT (n))].child_index = n;
+        }
+
+
+        swap_hnode (&HEAP (n), &HEAP (PARENT (n)));
+        n = PARENT (n);
     }
 
 
@@ -101,31 +120,33 @@ Return_code get_min (hHeap* heap, size_t* buffer) {
 }
 
 
-Return_code pop_min (hHeap* heap, Node* buffer) {
+Return_code pop_min (hHeap* heap, hNode* answer, sNode* sbuffer) {
 
     if (!heap)         { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
     if (!heap->buffer) { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
 
 
-    if (buffer) { *buffer = HEAP (0); }
+    if (answer) { *answer = HEAP (0); }
 
 
-    HEAP (0) = HEAP (heap->size - 1);
+    HEAP (0)                          = HEAP (heap->size - 1);
+    sbuffer [HHEAP (0)].child_index = 0; // пропустил эту строчку, дебажил 2 часа
     heap->size -= 1;
 
 
-    sift_down (heap, 0);
+    sift_down (heap, 0, sbuffer);
 
 
     return SUCCESS;
 }
 
 
-Return_code heap_push (hHeap* heap, Node value) {
+Return_code heap_push (hHeap* heap, hNode value, sNode* sbuffer) {
 
-    if (!heap)         { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
-    if (!heap->buffer) { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
-
+    if (!heap)                        { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
+    if (!heap->buffer)                { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
+    if (!sbuffer)                     { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
+    if (heap->size == heap->capacity) { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
 
     // if (heap->size == heap->capacity) { heap_resize (heap); } всегда один размер
 
@@ -133,16 +154,34 @@ Return_code heap_push (hHeap* heap, Node value) {
     heap->size += 1;
 
 
-    HEAP (heap->size - 1) = value;
+    HEAP    (heap->size - 1) = value;
+    sbuffer [value.key].child_index = heap->size - 1;
 
 
-    sift_up (heap, heap->size - 1);
+    sift_up (heap, heap->size - 1, sbuffer);
+
+
+    return SUCCESS;
+}
+
+Return_code heap_pop (hHeap* heap, size_t index, sNode* sbuffer) {
+
+    if (!heap) { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
+
+
+    int cur_min                = heap->buffer [0].value;
+    heap->buffer [index].value = cur_min - 1; // может быть бага, если это INT_MIN
+
+
+    sift_up (heap, index,   sbuffer);
+    pop_min (heap, nullptr, sbuffer);
 
 
     return SUCCESS;
 }
 
 
+/*
 Return_code swap_hheap_ptr (hHeap** p1, hHeap** p2) {
 
     if (!p1) { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
@@ -156,17 +195,17 @@ Return_code swap_hheap_ptr (hHeap** p1, hHeap** p2) {
 
     return SUCCESS;
 }
+*/
 
-
-Return_code swap_node (Node* node1, Node* node2) {
+Return_code swap_hnode (hNode* node1, hNode* node2) {
 
     if (!node1) { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
     if (!node2) { LOG_ERROR (BAD_ARGS); return BAD_ARGS; }
 
 
-    Node temp = *node1;
-    *node1 = *node2;
-    *node2 = temp;
+    hNode temp = *node1;
+    *node1     = *node2;
+    *node2     =  temp;
 
 
     return SUCCESS;

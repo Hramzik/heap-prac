@@ -108,10 +108,10 @@ Return_code sift_up (kHeap* heap, size_t n) {
 
 
 
-    while (n && HEAP (n) < HEAP (kPARENT (n))) {
+    while (n && HEAP (n) < HEAP (KPARENT (n))) {
 
-        swap_int (&HEAP (n), &HEAP (kPARENT (n)));
-        n = kPARENT (n);
+        swap_int (&HEAP (n), &HEAP (KPARENT (n)));
+        n = KPARENT (n);
     }
 
 

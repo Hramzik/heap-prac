@@ -39,13 +39,13 @@ size_t sort_avg_time ( Return_code (sort_func) (Array*, Sort_info*), Array* arra
     Sort_info dont_print = *info; dont_print.print = false;
 
 
-    // size_t time1 = sort_time (sort_func, array, &dont_print) / 5;
-    // size_t time2 = sort_time (sort_func, array, &dont_print) / 5;
-    // size_t time3 = sort_time (sort_func, array, &dont_print) / 5;
-    // size_t time4 = sort_time (sort_func, array, &dont_print) / 5;
+    size_t time1 = sort_time (sort_func, array, &dont_print) / 5;
+    size_t time2 = sort_time (sort_func, array, &dont_print) / 5;
+    size_t time3 = sort_time (sort_func, array, &dont_print) / 5;
+    size_t time4 = sort_time (sort_func, array, &dont_print) / 5;
     size_t time5 = sort_time (sort_func, array, &do_print)   / 5;
 
-    return /*time1 + time2 + time3 + time4 +*/ time5;
+    return time1 + time2 + time3 + time4 + time5;
 }
 
 
@@ -82,14 +82,14 @@ Return_code sorts_one_test (size_t size, Sort_info* info) {
     CREATE_INFO (1000);
 
     write ("sheap5",    size, sort_avg_time (sheap_sort, array, info5));
-    // write ("sheap10",   size, sort_avg_time (sheap_sort, array, info));
-    // write ("sheap25",   size, sort_avg_time (sheap_sort, array, info));
-    // write ("sheap100",  size, sort_avg_time (sheap_sort, array, info100));
-    // write ("sheap200",  size, sort_avg_time (sheap_sort, array, info200));
-    // write ("sheap300",  size, sort_avg_time (sheap_sort, array, info300));
-    // write ("sheap400",  size, sort_avg_time (sheap_sort, array, info400));
-    // write ("sheap500",  size, sort_avg_time (sheap_sort, array, info500));
-    // write ("sheap1000", size, sort_avg_time (sheap_sort, array, info1000));
+    write ("sheap10",   size, sort_avg_time (sheap_sort, array, info10));
+    write ("sheap25",   size, sort_avg_time (sheap_sort, array, info25));
+    write ("sheap100",  size, sort_avg_time (sheap_sort, array, info100));
+    write ("sheap200",  size, sort_avg_time (sheap_sort, array, info200));
+    write ("sheap300",  size, sort_avg_time (sheap_sort, array, info300));
+    write ("sheap400",  size, sort_avg_time (sheap_sort, array, info400));
+    write ("sheap500",  size, sort_avg_time (sheap_sort, array, info500));
+    write ("sheap1000", size, sort_avg_time (sheap_sort, array, info1000));
 
 
     array_dtor (array);
